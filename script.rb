@@ -1,6 +1,8 @@
-# frozen_string_literal: true
-
-require 'matrix'
+MODULUS = 2_147_483_648
+MULTIPLIER = 1_103_515_245
+INCREMENT = 12_345
+DIVIDER = 2001
+DECREMENT = 1000
 
 class Time
   def to_ms
@@ -9,82 +11,65 @@ class Time
 end
 
 
-# Linear congruential generator.
-def lcg(flag)
-  print("Input seed: ")
-  seed = gets.to_i
-  print("Input number of values: ")
-  num = gets.to_i
-
-  m = 2_147_483_648
-  a = 1_103_515_245
-  c = 12_345
-  i = 0
-
-  my_array = Array.new(num)
-
-  start_time = Time.now
-
-  while i < num
-    my_array[i] = (a * seed + c) % m
-    seed = my_array[i]
-    i += 1
+def lcg(size, seed)
+  array = Array.new(size)
+  (0..size - 1).each do |i|
+    array[i] = (MULTIPLIER * seed + INCREMENT) % MODULUS
+    seed = array[i]
   end
-
-  end_time = Time.now
-  print "time: " + (end_time.to_ms - start_time.to_ms).to_s + "ms\n"
-
-  if flag == "1"
-    puts my_array
-  end
+  array
 end
 
 
-
-
-# Finding the maximum in the array
 def find_max(flag)
-  print("Input array size: ")
   size = gets.to_i
-  print("Input seed: ")
   seed = gets.to_i
-
-  max = 0
-  i = 0
-  srand seed
-  my_array = Array.new(size) { rand 1_073_741_824 }
+  array = lcg(size, seed)
 
   start_time = Time.now
-
-  while i < size
-    if max < my_array[i]
-      max = my_array[i]
+  max = array[0]
+  (1..size - 1).each do |i|
+    if max < array[i]
+      max = array[i]
     end
-    i += 1
   end
-
   end_time = Time.now
-  print "time: " + (end_time.to_ms - start_time.to_ms).to_s + "ms\n"
 
+  print("time: #{end_time.to_ms - start_time.to_ms} ms\n")
   if flag == "1"
     puts max
   end
 end
 
 
+def merge_sort_array(flag)
+  size = gets.to_i
+  seed = gets.to_i
+  array = lcg(size, seed)
 
 
-# Sorting by merging an array
+  start_time = Time.now
+  array = merge_sort(array)
+  end_time = Time.now
+
+  print("time: #{end_time.to_ms - start_time.to_ms} ms\n")
+  if flag == "1"
+    (0..size - 2).each { |i| print("#{array[i]} ")}
+    puts array[size - 1]
+  end
+end
+
 def merge_sort(unsorted_array)
   if unsorted_array.length <=1
     unsorted_array
   else
-    mid = unsorted_array.length/2
-    first_half = merge_sort(unsorted_array.slice(0...mid))
-    second_half = merge_sort(unsorted_array.slice(mid...unsorted_array.length))
+    middle = unsorted_array.length/2
+    first_half = merge_sort(unsorted_array.slice(0...middle))
+    second_half = merge_sort(unsorted_array.slice(middle...unsorted_array.length))
     merge(first_half, second_half)
   end
 end
+
 def merge(left_array, right_array)
   sorted_array = []
   while !left_array.empty? && !right_array.empty? do
@@ -96,122 +81,48 @@ def merge(left_array, right_array)
   end
   sorted_array.concat(left_array).concat(right_array)
 end
-def merge_sort_array(flag)
-  print("Input array size: ")
-  size = gets.to_i
-  print("Input seed: ")
-  seed = gets.to_i
-
-  srand seed
-  my_array = Array.new(size) { rand 1_073_741_824 }
-
-  start_time = Time.now
-
-  my_array = merge_sort(my_array)
-
-  end_time = Time.now
-
-  print "time: " + (end_time.to_ms - start_time.to_ms).to_s + "ms\n"
-
-  if flag == "1"
-    puts my_array
-  end
-
-end
 
 
-
-
-# Sorting by merging a linked list
-class Node
-  attr_accessor :data, :next
-  def initialize(value)
-    @data = value
-    @next = nil
-  end
-end
-def mergesort(head)
-  return head if !head || !head.next
-
-  a, b = front_back_split(head)
-  a = mergesort(a)
-  b = mergesort(b)
-  sort_merge(a, b)
-end
-def front_back_split(head)
-  slow = head
-  fast = head.next
-  until fast.nil?
-    fast = fast.next
-    unless fast.nil?
-      slow = slow.next
-      fast = fast.next
-    end
-  end
-  a = head
-  b = slow.next
-  slow.next = nil
-  [a, b]
-end
-def sort_merge(a, b)
-  result = nil
-
-  if a.nil?
-    return b
-  elsif b.nil?
-    return a
-  end
-
-  if a.data <= b.data
-    result = a
-    result.next = sort_merge(a.next, b)
-  else
-    result = b
-    result.next = sort_merge(a, b.next)
-  end
-  result
-end
 def merge_sort_linked_list(flag)
 
 end
 
 
-
-
-
-# Multiplication of matrices of size N*N
 def mult_matrix(flag)
-  print("Input array size: ")
-  size = gets.to_i
-  print("Input seed: ")
+  n = gets.to_i
   seed = gets.to_i
 
-  srand seed
-  a = Matrix.build(size) { rand 100 }
-  b = Matrix.build(size) { rand 100 }
-
-  start_time = Time.now
-
-  c = a * b
-
-  end_time = Time.now
-
-  print "time: " + (end_time.to_ms - start_time.to_ms).to_s + "ms\n"
-
-  if flag == "1"
-    (0..size).each { |i|
-      (0..size).each { |j|
-        print(c[i, j])
-        print(" ")
-      }
-      print("\n")
-    }
+  size = n * n
+  a = lcg(size, seed)
+  b = lcg(size, a[size - 1])
+  c = Array.new(size)
+  (0..size - 1).each do |i|
+    a[i] = a[i] % DIVIDER - DECREMENT
+    b[i] = b[i] % DIVIDER - DECREMENT
   end
 
+  start_time = Time.now
+  (0..n - 1).each do |i|
+    (0..n - 1).each do |j|
+      c[n*i + j] = 0
+      (0..n - 1).each do |k|
+        c[n*i + j] += a[n*i + k] * b[n*k + j]
+      end
+    end
+  end
+  end_time = Time.now
+
+  print("time: #{end_time.to_ms - start_time.to_ms} ms\n")
+  if flag == "1"
+    (0..n - 1).each do |i|
+      (0.. n - 2).each {|j| print("#{c[n*i + j]} ") }
+      puts c[n*i + n -1]
+    end
+  end
 end
 
 
-def find_prime_numbers(flag)
+def find_prime_number(flag)
   a = gets.to_i
   b = gets.to_i
 
@@ -227,28 +138,22 @@ def find_prime_numbers(flag)
   array = Array.new(size.to_i)
 
   start_time = Time.now
-
-  (a..b - 1).each do |n|
-    if isPrime(n)
-      array[counter] = n
+  (a..b - 1).each do |number|
+    if is_prime(number)
+      array[counter] = number
       counter += 1
     end
   end
-
   end_time = Time.now
 
-  print "time: " + (end_time.to_ms - start_time.to_ms).to_s + "ms\n"
-
+  print("time: #{end_time.to_ms - start_time.to_ms} ms\n")
   if flag == "1"
-    (0..counter - 1).each do |i|
-      print("#{array[i]} ")
-    end
+    (0..counter - 2).each { |i| print("#{array[i]} ")}
+    puts array[counter - 1]
   end
-
 end
 
-
-def isPrime(n)
+def is_prime(n)
   if n <= 1
     return false
   end
@@ -261,21 +166,14 @@ def isPrime(n)
 end
 
 
-# Read/write speed
 def read_and_write_file(flag)
 
 end
 
 
-
-print "Input program id: "
 id = gets.chomp
-printf "Input program flag: "
 flag = gets.chomp
-
 case id
-when "0"
-  lcg(flag)
 when "1.1"
   find_max(flag)
 when "1.2"
@@ -285,10 +183,9 @@ when "2.1"
 when "3.1"
   mult_matrix(flag)
 when "4.1"
-  find_prime_numbers(flag)
+  find_prime_number(flag)
 when "5.1"
   read_and_write_file(flag)
 else
-  # puts "Error in the program id!"
+  puts "Incorrect program id!"
 end
-
